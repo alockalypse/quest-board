@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Quest Board</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='4' y='4' width='8' height='8' transform='rotate(45 8 8)' fill='%232F5BEA'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Cinzel:wght@600;700&family=Special+Elite&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#EEF0F4; --panel:#F8F9FB; --card:#FFFFFF; --ink:#161A23; --muted:#5D6475; --line:#D7DBE4;
+  --accent:#2F5BEA; --accent-ink:#FFFFFF; --accent-soft:#E3E9FD;
+  --todo:#6B7385; --doing:#C07A0B; --done:#1E8A55; --danger:#C2362F;
+  --shadow:0 1px 2px rgba(22,26,35,.06),0 2px 8px rgba(22,26,35,.05);
+  --display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#12151C; --panel:#191D26; --card:#20252F; --ink:#E8EBF2; --muted:#98A0B3; --line:#2E3441;
+  --accent:#6E8FFF; --accent-ink:#0D1220; --accent-soft:#232C48;
+  --todo:#9AA2B4; --doing:#E6A23C; --done:#45C282; --danger:#F07A72;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+}}
+/* V Rising tab: gothic night theme (only applies while that game is selected) */
+:root[data-skin="vrising"]{
+  color-scheme:dark;
+  --bg:#0d090b; --panel:#171012; --card:#1f1517; --ink:#eadfcd; --muted:#a8948a; --line:#3b2729;
+  --accent:#c3182a; --accent-ink:#fff4ea; --accent-soft:#3a1519;
+  --todo:#8f8288; --doing:#d9953b; --done:#8fae74; --danger:#ff6f61;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 4px 14px rgba(0,0,0,.35);
+  --display:"Cinzel","Times New Roman",Georgia,serif;
+}
+:root[data-skin="vrising"] body{background:radial-gradient(1200px 600px at 50% -10%,#2a0d12 0%,transparent 60%),var(--bg);background-attachment:fixed}
+:root[data-skin="vrising"] h1 .dot{background:var(--accent);box-shadow:0 0 10px var(--accent)}
+:root[data-skin="vrising"] .col-head h3,:root[data-skin="vrising"] .notes .nt{letter-spacing:.14em}
+:root[data-skin="vrising"] .tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+:root[data-skin="vrising"] .card{border-left-width:3px}
+:root[data-skin="vrising"] .chk .box{color:#10160c}
+/* Project Zomboid tab: grimy survival theme (any game with "zomboid" in its name) */
+:root[data-skin="zomboid"]{
+  color-scheme:dark;
+  --bg:#101109; --panel:#181a11; --card:#20231a; --ink:#d8d4bc; --muted:#8f927c; --line:#363a2b;
+  --accent:#b8512b; --accent-ink:#fff3e6; --accent-soft:#35231a;
+  --todo:#8a8d78; --doing:#c9a227; --done:#7a9a4e; --danger:#e0604a;
+  --shadow:0 1px 2px rgba(0,0,0,.55),0 3px 10px rgba(0,0,0,.35);
+  --display:"Special Elite","Courier New",ui-monospace,monospace;
+}
+:root[data-skin="zomboid"] body{background:linear-gradient(180deg,rgba(0,0,0,.35),transparent 280px),repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 2px,transparent 2px 4px),var(--bg);background-attachment:fixed}
+:root[data-skin="zomboid"] h1 .dot{background:var(--accent);transform:none;border-radius:50%;box-shadow:0 0 8px var(--accent)}
+:root[data-skin="zomboid"] .col-head h3,:root[data-skin="zomboid"] .notes .nt{letter-spacing:.12em}
+:root[data-skin="zomboid"] .tab[aria-selected="true"],:root[data-skin="zomboid"] .views button[aria-selected="true"],:root[data-skin="zomboid"] .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+:root[data-skin="zomboid"] .card{border-left-width:4px;border-radius:4px}
+:root[data-skin="zomboid"] .col,:root[data-skin="zomboid"] .adder,:root[data-skin="zomboid"] .notes,:root[data-skin="zomboid"] .rcard{border-radius:4px}
+:root[data-skin="zomboid"] .chk .box{color:#10160c}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;padding-inline:16px;padding-block:18px 40px}
+.wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.02em;margin:0;display:flex;align-items:center;gap:10px}
+h1 .dot,.login .dot{width:10px;height:10px;background:var(--accent);transform:rotate(45deg);display:inline-block}
+.hdr-r{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.hdr-r .hi{font-size:13px;color:var(--muted);margin-right:4px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 12px;font-weight:500}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--danger)}
+.btn.danger.solid{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.6;cursor:default}
+
+/* sign in */
+.login{max-width:360px;margin:8vh auto 0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
+.login h2{margin:0;font-family:var(--display);font-size:22px;display:flex;align-items:center;gap:10px}
+.login .err{color:var(--danger);font-size:13px;margin:0}
+.login .err:empty{display:none}
+.importbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:10px 14px}
+.importbar span{flex:1;min-width:200px}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;align-items:center;scrollbar-width:thin}
+.tab{white-space:nowrap;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 14px;font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.tab .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[aria-selected="true"] .n{color:inherit;opacity:.7}
+.tab.add{border-style:dashed;color:var(--muted);background:transparent;font-family:var(--body);font-weight:500}
+.inline-form{display:flex;gap:6px;align-items:center}
+.inline-form input{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;min-width:0;width:180px}
+
+.gamebar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.gamebar h2{font-family:var(--display);font-size:18px;margin:0;text-wrap:balance}
+.gamebar .actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.filter{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 8px}
+
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+@media (max-width:760px){.board{grid-template-columns:1fr}}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.col.over{border-color:var(--accent);background:var(--accent-soft)}
+.col-head{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 4px}
+.col-head h3{margin:0;font-family:var(--display);font-size:13px;text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:8px}
+.col-head h3::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
+.count{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.quick{display:flex;gap:6px}
+.quick input{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 10px}
+.empty{color:var(--muted);font-size:13px;padding:10px 6px;text-align:center}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 10px 8px 12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;position:relative;border-left:3px solid var(--c)}
+.card{cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.card.placeholder{opacity:.35}
+.card.ghost{position:fixed;left:0;top:0;z-index:20;pointer-events:none;box-shadow:0 14px 34px rgba(0,0,0,.28);opacity:.96;margin:0}
+.dropline{height:3px;border-radius:2px;background:var(--accent);margin:-2px 2px;flex:none}
+.card.reordering{outline:2px dashed var(--accent);outline-offset:2px}
+.step-ghost{padding:8px 12px;border-left:3px solid var(--c);font-size:13px}
+.step-ghost .t{color:var(--ink)!important}
+body.is-dragging,body.is-dragging *{cursor:grabbing!important}
+.card .t{font-weight:500;word-break:break-word;background:none;border:0;padding:0;text-align:left}
+.card.done .t{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.card ul{margin:0;padding-left:18px;color:var(--muted);font-size:13px}
+.card ul li{word-break:break-word}
+.meta{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.who{font-size:12px;background:var(--accent-soft);color:var(--ink);border-radius:999px;padding:2px 9px;font-weight:500}
+.who.none{background:transparent;color:var(--muted);padding-left:0}
+.moves{display:flex;gap:2px}
+.moves button{border:1px solid transparent;background:transparent;color:var(--muted);border-radius:6px;width:28px;height:26px;line-height:1;font-size:14px}
+.moves button:hover{border-color:var(--line);color:var(--ink)}
+.moves button:disabled{visibility:hidden}
+
+/* editor */
+.scrim{position:fixed;inset:0;background:rgba(10,12,18,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px 16px;z-index:10;overflow-y:auto}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:480px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.sheet h4{margin:0;font-family:var(--display);font-size:16px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 10px;width:100%}
+.field textarea{min-height:110px;resize:vertical;line-height:1.5}
+.hint{font-size:12px;color:var(--muted)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.sheet-foot .r{display:flex;gap:8px;margin-left:auto}
+.people-list{display:flex;flex-wrap:wrap;gap:6px}
+.person{display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 4px 3px 10px}
+.person button{border:0;background:transparent;color:var(--muted);width:22px;height:22px;border-radius:50%}
+.person button:hover{color:var(--danger)}
+.person .pn{width:auto;height:auto;border-radius:6px;padding:0 2px;color:var(--ink)}
+.person .pn:hover{color:var(--accent)}
+.person .pen{font-size:11px;color:var(--muted)}
+.person.editing{padding:4px;gap:6px;border-color:var(--accent)}
+.person.editing input{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 10px;width:140px;min-width:0}
+.person.editing .btn{padding:4px 10px;width:auto;height:auto;border-radius:999px}
+.person.editing .btn.primary{color:var(--accent-ink)}
+.notice{font-size:12px;color:var(--muted);text-align:center}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:30;max-width:min(560px,calc(100% - 32px));background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.titleline{display:flex;align-items:baseline;gap:8px;justify-content:space-between}
+.qty{font-family:var(--mono);font-size:12px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 6px;flex:none;font-variant-numeric:tabular-nums}
+.dq{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.adder{display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.adder-row{display:flex;gap:8px}
+.adder-row input{flex:1;min-width:0;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:10px 12px;font-size:15px}
+.adder-row .btn{white-space:nowrap}
+.syntax{margin:0;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted)}
+.syntax kbd{font-family:var(--mono);font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:0 5px;color:var(--ink)}
+@media (max-width:520px){.adder-row .btn{padding-inline:12px}}
+
+/* steps on a card */
+.prog{display:flex;align-items:center;gap:8px}
+.prog .bar{flex:1;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.prog .bar i{display:block;height:100%;background:var(--done);border-radius:3px}
+.prog .pn{font-family:var(--mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.checklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.chk{display:flex;align-items:center;gap:8px;padding:3px 4px;border-radius:6px;cursor:grab}
+.chk:hover{background:var(--bg)}
+.chk .box{width:18px;height:18px;flex:none;border-radius:4px;border:1.5px solid var(--muted);background:var(--card);display:grid;place-items:center;font-size:11px;line-height:1;padding:0;color:#fff;cursor:pointer}
+.chk .box:hover{border-color:var(--done)}
+.chk.ok .box{background:var(--done);border-color:var(--done)}
+.chk .sn{flex:1;min-width:0;word-break:break-word;font-size:13px}
+.chk.ok .sn{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.chk.next .sn{font-weight:600}
+.chk .nx{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--accent)}
+.chk.placeholder{opacity:.3}
+.dropline.in-list{margin:1px 0 1px 26px}
+/* steps in the editor */
+.steplist{display:flex;flex-direction:column;gap:6px}
+.steplist .none{margin:0}
+.srow{display:grid;grid-template-columns:20px 1fr 64px 28px 28px 28px;gap:6px;align-items:center}
+.field .srow .st-d{width:18px;height:18px;padding:0;margin:0;accent-color:var(--done)}
+.field .srow .st-q{padding-inline:6px}
+.ib{border:1px solid var(--line);background:var(--card);border-radius:6px;height:32px;padding:0;color:var(--muted)}
+.ib:hover:not(:disabled){color:var(--ink);border-color:var(--muted)}
+.ib:disabled{opacity:.35;cursor:default}
+.ib.rm:hover{color:var(--danger)}
+.newdep{display:grid;grid-template-columns:1fr 64px auto;gap:6px}
+/* games manager */
+.glist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;background:var(--card);overflow:hidden}
+.grow{display:grid;grid-template-columns:1fr auto 30px 30px auto;align-items:center;gap:6px;padding:6px 6px 6px 12px;border-top:1px solid var(--line)}
+.grow:first-child{border-top:0}
+.grow .gn{min-width:0;word-break:break-word;font-weight:500}
+.grow.arch .gn{color:var(--muted)}
+.grow.arch{grid-template-columns:1fr auto auto}
+.ghead{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+/* board / recipes switch */
+.gtitle{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0}
+.views{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--panel)}
+.views button{border:0;background:transparent;border-radius:999px;padding:5px 14px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px}
+.views button .n{font-family:var(--mono);font-size:11px}
+.views button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+:root[data-skin="vrising"] .views button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+/* recipes */
+.recipes{display:flex;flex-direction:column;gap:12px}
+.rtools{display:flex;gap:8px}
+.rtools input{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 12px;font-size:15px}
+.rcats{display:flex;flex-wrap:wrap;gap:6px}
+.rcats:empty{display:none}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 11px;font-size:12px;display:flex;gap:6px;align-items:center}
+.chip .n{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip[aria-pressed="true"] .n{color:inherit;opacity:.7}
+:root[data-skin="vrising"] .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.rgroup{margin:10px 0 0;font-family:var(--display);font-size:13px;text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:8px}
+.rgroup.pinned-h{color:var(--accent)}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;align-items:start}
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;box-shadow:var(--shadow)}
+.rcard.pinned{border-color:var(--accent)}
+.rhead{display:flex;align-items:flex-start;gap:8px}
+.rname{background:none;border:0;padding:0;text-align:left;font-weight:600;flex:1;min-width:0;word-break:break-word}
+.rname:hover{color:var(--accent)}
+.pin{border:0;background:transparent;color:var(--muted);width:26px;height:26px;border-radius:6px;display:grid;place-items:center;flex:none;opacity:.55;margin:-3px -5px 0 0}
+.rcard:hover .pin,.pin:focus-visible{opacity:1}
+.pin:hover{background:var(--bg);color:var(--ink)}
+.pin[aria-pressed="true"]{color:var(--accent);opacity:1}
+.rstation{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.ings{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.ings li{display:grid;grid-template-columns:34px 1fr;gap:6px;align-items:baseline}
+.iq{font-family:var(--mono);font-size:12px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.iq::after{content:"×"}
+.ilink{background:none;border:0;padding:0;text-align:left;color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.ilink:hover{color:var(--accent);text-decoration-color:currentColor}
+.rnotes{margin:0;font-size:12px;color:var(--muted);white-space:normal}
+.rsrc{margin:0;font-size:10px;color:var(--muted);opacity:.75}
+.check{display:flex;align-items:center;gap:8px;font-size:13px}
+.preview{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;font-size:12px;background:var(--card);border:1px dashed var(--accent);border-radius:8px;padding:6px 8px}
+.preview .plbl{color:var(--muted);width:100%;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.preview .pstep{background:var(--accent-soft);border-radius:5px;padding:2px 7px}
+.preview .pstep b{font-family:var(--mono);font-weight:500}
+.preview .pt{font-weight:600}
+.preview .parr{color:var(--muted)}
+.preview .pwho{font-size:11px;font-weight:600;color:var(--accent)}
+.preview .pnew{width:100%;font-size:11px;color:var(--muted)}
+.preview .pnew.warn{color:var(--danger)}
+[data-open]{cursor:pointer}
+.card .t{cursor:pointer}
+.card .t:hover{color:var(--accent)}
+.moves .edit{font-size:13px}
+.notes{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0}
+.notes summary{display:flex;align-items:baseline;gap:10px;padding:10px 14px;cursor:pointer;list-style:none;min-width:0}
+.notes summary::-webkit-details-marker{display:none}
+.notes summary::before{content:"▸";color:var(--muted);font-size:12px;transition:transform .15s}
+.notes[open] summary::before{transform:rotate(90deg)}
+.notes .nt{font-family:var(--display);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.08em;flex:none}
+.notes .npre{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.notes[open] .npre{visibility:hidden}
+.notes .nstat{font-size:11px;color:var(--muted);flex:none;font-variant-numeric:tabular-nums}
+.notes textarea{display:block;width:calc(100% - 28px);margin:0 14px 14px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:10px 12px;line-height:1.55;resize:vertical;min-height:84px}
+@media (max-width:520px){.notes .npre{display:none}}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:hover{transform:translateY(-1px)}}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+
+<form class="login" id="loginForm" autocomplete="on" hidden>
+  <h2><span class="dot"></span>Quest Board</h2>
+  <div class="field"><label for="lUser">Name</label><input id="lUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+  <div class="field"><label for="lPass">Password</label><input id="lPass" name="password" type="password" autocomplete="current-password" required></div>
+  <button class="btn primary" id="lBtn">Sign in</button>
+  <p class="err" id="lErr" role="alert"></p>
+  <p class="hint" style="margin:0">You'll stay signed in on this device until you log out.</p>
+</form>
+
+<div class="wrap" id="app" hidden>
+  <header>
+    <h1><span class="dot"></span>Quest Board</h1>
+    <div class="hdr-r"><span class="hi" id="hi"></span><button class="btn" id="gamesBtn">Games</button><button class="btn" id="peopleBtn">People</button><button class="btn ghost" id="logoutBtn" hidden>Log out</button></div>
+  </header>
+  <div class="importbar" id="importBar" hidden><span id="importText"></span><button class="btn primary" id="importBtn">Import them</button><button class="btn ghost" id="importNo">Not now</button></div>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Games"></nav>
+  <div id="gamebar"></div>
+  <details class="notes" id="notes" hidden>
+    <summary><span class="nt">Notes for next time</span><span class="npre" id="notesPreview"></span><span class="nstat" id="notesStatus"></span></summary>
+    <textarea id="notesText" rows="4" placeholder="Where you left off, what to do next session, codes, seeds, builds…" aria-label="Game notes"></textarea>
+  </details>
+  <section class="adder" id="adder" hidden>
+    <form class="adder-row" id="quickForm">
+      <input id="quickAdd" placeholder="Add a task, or one with steps: Super chest: 6 wood > 3 chests > craft it @Dan" maxlength="400" autocomplete="off" aria-label="New task">
+      <button class="btn primary">Add task</button>
+    </form>
+    <div class="preview" id="preview" hidden></div>
+    <p class="syntax"><span><kbd>&gt;</kbd> splits it into steps, in order</span><span><kbd>Name:</kbd> before the steps names the card (otherwise the last step does)</span><span><kbd>6 wood</kbd> or <kbd>wood x6</kbd> adds a quantity</span><span><kbd>@Dan</kbd> assigns the card to someone in People</span></p>
+  </section>
+  <div id="main"></div>
+  <p class="notice" id="notice" hidden>Changes can't be saved right now. Reload the page to try again.</p>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<div id="modal"></div>
+
+<script>
+/* ---------- Google Sheet backend ----------
+   Talks to the Apps Script web app in config.js and looks like a tiny document store:
+   db.doc("tasks/abc").set/update/delete, db.collection("tasks").onSnapshot(cb).
+   Changes show straight away and are sent to the sheet in batches; the sheet is checked
+   every few seconds for other people's changes. */
+const CREDS_KEY="qb.creds";
+function loadCreds(){try{const c=JSON.parse(localStorage.getItem(CREDS_KEY));return c&&c.username&&c.password?c:null}catch(e){return null}}
+function saveCreds(c){try{localStorage.setItem(CREDS_KEY,JSON.stringify(c))}catch(e){}}
+function clearCreds(){try{localStorage.removeItem(CREDS_KEY)}catch(e){}}
+function sheetCall(url,action,creds,extra){
+  const body=JSON.stringify(Object.assign({action},creds,extra||{}));
+  return fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"}, // text/plain: no CORS preflight, which Apps Script can't answer
+    body,keepalive:action==="write"&&body.length<60000}) // keepalive: a save started as the page closes still gets sent
+    .then(r=>r.text()).then(t=>{try{return JSON.parse(t)}catch(e){return{ok:false,error:"Unexpected reply from the sheet. Check the URL in config.js."}}});
+}
+function makeSheetDb(url,creds,opts){
+  const cache=new Map(),subs=new Set(),last={},queue=[];
+  let rev=null,pending=0,wseq=0,started=false,fails=0,flushing=false,flushTimer=null,polling=false;
+  const call=(a,x)=>sheetCall(url,a,creds,x);
+  const key=(c,i)=>c+"/"+i;
+  const copy=d=>d===undefined?undefined:JSON.parse(JSON.stringify(d));
+  const split=k=>{const j=k.indexOf("/");return[k.slice(0,j),k.slice(j+1)]};
+  const snapCol=c=>{const docs=[];cache.forEach((d,k)=>{const [kc,ki]=split(k);if(kc===c)docs.push({id:ki,data:()=>copy(d)})});return{docs}};
+  const snapDoc=(c,i)=>{const d=cache.get(key(c,i));return{id:i,exists:d!==undefined,data:()=>copy(d)}};
+  const fire=s=>{try{s.cb(s.doc?snapDoc(s.col,s.doc):snapCol(s.col))}catch(e){console.error(e)}};
+  // tell listeners only about collections whose contents actually changed
+  function emit(all){
+    const sig={};cache.forEach((d,k)=>{const c=split(k)[0];(sig[c]=sig[c]||[]).push(k+"="+JSON.stringify(d))});
+    const changed=new Set();
+    new Set([...Object.keys(sig),...Object.keys(last)]).forEach(c=>{const s=(sig[c]||[]).sort().join("\n");if(last[c]!==s){changed.add(c);last[c]=s}});
+    subs.forEach(s=>{if(all||changed.has(s.col))fire(s)});
+  }
+  async function poll(){
+    if(polling||pending||(started&&document.visibilityState==="hidden"))return;
+    polling=true;const seq=wseq;let r;
+    try{r=await call("list",{since:rev})}catch(e){if(++fails===3)opts.onError?.("Can't reach the sheet. Still trying…");return}
+    finally{polling=false}
+    fails=0;
+    if(!r.ok){if(r.code==="auth")opts.onAuthFail?.();else console.error(r.error);return}
+    if(pending||seq!==wseq)return; // one of our own changes is on its way: wait for the next check
+    if(!r.same){cache.clear();(r.docs||[]).forEach(d=>cache.set(key(d.c,d.i),d.d))}
+    rev=r.rev;
+    const first=!started;started=true;
+    emit(first);
+    if(first)opts.onReady?.();
+  }
+  function write(op){
+    const k=key(op.c,op.i);
+    if(op.op==="set")cache.set(k,copy(op.d));
+    else if(op.op==="update"){const cur=cache.get(k);if(cur===undefined)return Promise.resolve();cache.set(k,Object.assign({},cur,copy(op.d)))}
+    else cache.delete(k);
+    wseq++;pending++;queue.push(op);emit(false);
+    clearTimeout(flushTimer);flushTimer=setTimeout(flush,40); // group changes made together into one request
+    return Promise.resolve(); // shown straight away; a failed save is reported by onWriteFail and the board resyncs
+  }
+  async function flush(){
+    if(flushing)return;flushing=true;
+    while(queue.length){
+      const batch=queue.splice(0,queue.length);
+      try{const r=await call("write",{ops:batch});
+        if(!r.ok){const e=new Error(r.error||"Save failed");e.code=r.code==="auth"?"not_granted":(r.code||"");throw e}}
+      catch(e){opts.onWriteFail?.(e);if(e.code==="not_granted")opts.onAuthFail?.()}
+      finally{pending-=batch.length}
+    }
+    flushing=false;rev=null;poll(); // reload everything, which also picks up anyone else's changes
+  }
+  const sub=(col,doc,cb)=>{const s={col,doc,cb};subs.add(s);if(started)fire(s);return()=>subs.delete(s)};
+  setInterval(poll,Math.max(3,Number(opts.pollSeconds)||5)*1000);
+  addEventListener("focus",()=>poll());
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")poll()});
+  setTimeout(poll);
+  addEventListener("beforeunload",e=>{if(pending){e.preventDefault();e.returnValue=""}});
+  return{
+    doc(path){const [c,i]=split(path);return{set:d=>write({op:"set",c,i,d}),update:d=>write({op:"update",c,i,d}),delete:()=>write({op:"delete",c,i}),onSnapshot:(cb)=>sub(c,i,cb)}},
+    collection(c){return{onSnapshot:(cb)=>sub(c,null,cb)}},
+    isEmpty:()=>cache.size===0,
+    async importDocs(docs){const r=await call("write",{ops:docs.map(d=>({op:"set",c:d.c,i:d.i,d:d.d}))});if(!r.ok)throw new Error(r.error||"Import failed");rev=null;await poll()}
+  };
+}
+// sign in once per device; the name and password are kept on this device until "Log out"
+function askLogin(url){
+  return new Promise(resolve=>{
+    const f=document.getElementById("loginForm"),err=document.getElementById("lErr"),btn=document.getElementById("lBtn");
+    try{err.textContent=sessionStorage.getItem("qb.loginMsg")||"";sessionStorage.removeItem("qb.loginMsg")}catch(e){}
+    f.hidden=false;document.getElementById("lUser").focus();
+    f.onsubmit=async e=>{e.preventDefault();
+      const creds={username:document.getElementById("lUser").value.trim(),password:document.getElementById("lPass").value};
+      btn.disabled=true;btn.textContent="Signing in…";err.textContent="";
+      let r;try{r=await sheetCall(url,"login",creds)}catch(x){r={ok:false,error:"Can't reach the sheet. Check your connection and try again."}}
+      btn.disabled=false;btn.textContent="Sign in";
+      if(!r.ok){err.textContent=r.code==="auth"?"That name and password don't match.":r.error;return}
+      f.hidden=true;resolve(Object.assign(creds,{displayName:r.displayName||creds.username}));
+    };
+  });
+}
+async function startBackend(onReady){
+  const cfg=window.QB_CONFIG||{},url=(cfg.API_URL||"").trim();
+  if(!url){document.getElementById("app").hidden=false;
+    document.getElementById("notice").textContent="Demo mode: nothing is saved. Add your Apps Script URL to config.js to use your sheet.";return null}
+  let creds=loadCreds();
+  if(!creds){creds=await askLogin(url);saveCreds(creds)}
+  document.getElementById("app").hidden=false;
+  document.getElementById("hi").textContent="Hi, "+(creds.displayName||creds.username);
+  const lo=document.getElementById("logoutBtn");lo.hidden=false;lo.onclick=()=>{clearCreds();location.reload()};
+  const {username,password}=creds;
+  return makeSheetDb(url,{username,password},{pollSeconds:cfg.pollSeconds,onReady,
+    onError:m=>toast(m,6000),onWriteFail:e=>fail(e),
+    onAuthFail:()=>{clearCreds();try{sessionStorage.setItem("qb.loginMsg","Your sign-in stopped working. Please sign in again.")}catch(e){}location.reload()}});
+}
+</script>
+
+<script>
+const COLS=[{id:"todo",name:"To do",c:"var(--todo)"},{id:"doing",name:"Doing",c:"var(--doing)"},{id:"done",name:"Done",c:"var(--done)"}];
+const S={games:[],tasks:[],recipes:[],view:"board",people:[],notes:{},sel:null,filter:"",addingGame:false,loaded:false};
+let db=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+try{S.sel=localStorage.getItem("qb.sel");S.view=localStorage.getItem("qb.view")==="recipes"?"recipes":"board"}catch(e){}
+
+/* ---------- data layer: the sheet when set up, in-memory demo otherwise ---------- */
+const local={
+  games:[{id:"g1",name:"Example game",createdAt:1}],
+  tasks:[
+    {id:"t1",gameId:"g1",title:"Finish the main story act",notes:["Check side quests first","Save before the boss"],assignee:"Dan",status:"doing",order:1},
+    {id:"t5",gameId:"g1",title:"Craft super chest",notes:[],assignee:"Dan",status:"doing",order:2,steps:[
+      {id:"s1",title:"Gather wood",qty:6,done:true},{id:"s2",title:"Craft chests",qty:3,done:false},{id:"s3",title:"Craft super chest",done:false}]},
+    {id:"t6",gameId:"g1",title:"Explore the caves",notes:[],assignee:"",status:"todo",order:3}],
+  recipes:[
+    {id:"r1",gameId:"g1",name:"Reinforced Plank",makes:1,station:"Sawmill",category:"Materials",ingredients:[{name:"Plank",qty:4},{name:"Iron Ingot",qty:4}],notes:"Example recipe",pinned:true,pinnedAt:1},
+    {id:"r2",gameId:"g1",name:"Iron Ingot",makes:1,station:"Furnace",category:"Materials",ingredients:[{name:"Iron Ore",qty:20}],notes:""},
+    {id:"r3",gameId:"g1",name:"Plank",makes:1,station:"Sawmill",category:"Materials",ingredients:[{name:"Wood",qty:20}],notes:"Also gives 1 Sawdust"}],
+  people:["Dan"]
+};
+const api={
+  async addGame(name){const id=uid();const g={name,createdAt:Date.now(),order:Date.now()};
+    if(db) await db.doc("games/"+id).set(g); else {local.games.push({id,...g});sync()} return id},
+  async patchGame(id,data){if(db) await db.doc("games/"+id).update(data); else {Object.assign(local.games.find(g=>g.id===id),data);sync()}},
+  async renameGame(id,name){if(db) await db.doc("games/"+id).update({name}); else {local.games.find(g=>g.id===id).name=name;sync()}},
+  async deleteGame(id){const ts=S.tasks.filter(t=>t.gameId===id);
+    if(db){for(const t of ts) await db.doc("tasks/"+t.id).delete(); for(const r of S.recipes.filter(r=>r.gameId===id)) await db.doc("recipes/"+r.id).delete(); await db.doc("gamenotes/"+id).delete(); await db.doc("games/"+id).delete()}
+    else {local.tasks=local.tasks.filter(t=>t.gameId!==id);local.recipes=local.recipes.filter(r=>r.gameId!==id);local.games=local.games.filter(g=>g.id!==id);delete S.notes[id];sync()}},
+  async saveNotes(gameId,text){const d={text,updatedAt:Date.now()};if(db) await db.doc("gamenotes/"+gameId).set(d); else S.notes[gameId]=d},
+  async saveTask(id,data){if(db) await db.doc("tasks/"+id).set(clean(data)); else {const i=local.tasks.findIndex(t=>t.id===id);const t={id,...data};i<0?local.tasks.push(t):local.tasks[i]=t;sync()}},
+  async patchTask(id,data){if(db) await db.doc("tasks/"+id).update(data); else {Object.assign(local.tasks.find(t=>t.id===id),data);sync()}},
+  async deleteTask(id){if(db) await db.doc("tasks/"+id).delete(); else {local.tasks=local.tasks.filter(t=>t.id!==id);sync()}},
+  async saveRecipe(id,data){if(db) await db.doc("recipes/"+id).set(clean(data)); else {const i=local.recipes.findIndex(r=>r.id===id);const r={id,...data};i<0?local.recipes.push(r):local.recipes[i]=r;sync()}},
+  async patchRecipe(id,data){if(db) await db.doc("recipes/"+id).update(data); else {Object.assign(local.recipes.find(r=>r.id===id),data);sync()}},
+  async deleteRecipe(id){if(db) await db.doc("recipes/"+id).delete(); else {local.recipes=local.recipes.filter(r=>r.id!==id);sync()}},
+  async setPeople(names){if(db) await db.doc("meta/people").set({names}); else {local.people=names;sync()}}
+};
+function sync(){S.games=local.games.map(g=>({...g}));S.tasks=local.tasks.map(t=>({...t,steps:t.steps?t.steps.map(x=>({...x})):t.steps}));S.recipes=local.recipes.map(r=>({...r}));S.people=[...local.people];S.loaded=true;render()}
+// drop empty values from new documents
+function clean(d){const o={};for(const k in d)if(d[k]!==null&&d[k]!==undefined)o[k]=d[k];return o}
+const cleanSteps=steps=>(steps||[]).filter(x=>x.title).map(x=>clean({id:x.id,title:x.title,qty:x.qty||null,done:!!x.done}));
+const sid=()=>Math.random().toString(36).slice(2,10);
+function fail(e){console.error("Save failed",e);
+  const code=e&&e.code?e.code:"";
+  const why=code==="not_granted"?"Your sign-in didn't work.":code==="server"?"The sheet had a problem: "+(e.message||""):"";
+  toast(`That change wasn't saved. ${why||"Check your connection and try again."}`,9000)}
+function toast(msg,ms=4000){const n=$("#toast");n.textContent=msg;n.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{n.hidden=true},ms)}
+
+/* ---------- helpers ---------- */
+const byId=id=>S.tasks.find(t=>t.id===id);
+const gOrder=g=>g.order??g.createdAt??0;
+const sortedGames=()=>[...S.games].sort((a,b)=>gOrder(a)-gOrder(b));
+const activeGames=()=>sortedGames().filter(g=>!g.archived);
+// "Wood x6", "Wood ×6" or "6 wood" -> {title, qty}
+function parseQty(s){let m=s.match(/^(.*?)\s*[x×]\s*(\d+)$/i);if(m&&m[1])return{title:m[1].trim(),qty:+m[2]};
+  m=s.match(/^(\d+)\s*[x×]?\s+(.+)$/i);if(m)return{title:m[2].trim(),qty:+m[1]};return{title:s,qty:null}}
+// @Dan -> someone on the People list (capitals ignored; the start of a name is enough if only one person matches).
+// Unknown names are never added from here; People is the only place to add someone.
+function resolvePerson(tag){
+  const t=tag.toLowerCase();
+  const exact=S.people.find(p=>p.toLowerCase()===t);if(exact)return exact;
+  const starts=S.people.filter(p=>p.toLowerCase().startsWith(t));if(starts.length===1)return starts[0];
+  const first=S.people.filter(p=>p.toLowerCase().split(/\s+/)[0]===t);if(first.length===1)return first[0];
+  return null;
+}
+// Add box, one card per entry:
+//   "Sanguine weapons: 10 blood essence > kill the boss"  -> card named before the colon, steps after it
+//   "6 wood > 3 chests > super chest"                     -> no colon: the last part names the card
+//   "@Dan" anywhere assigns the card
+function planTask(raw){
+  const unknown=[];let who=null;
+  let text=raw.replace(/(^|\s)@([\p{L}\p{N}_'.-]+)/gu,(m,sp,tag)=>{const r=resolvePerson(tag);if(r)who=r;else if(!unknown.includes(tag))unknown.push(tag);return sp});
+  const split=s=>s.split(/\s*(?:->|→|>)\s*/).map(x=>x.replace(/\s+/g," ").trim()).filter(Boolean).map(parseQty);
+  let head=null,c=text.indexOf(":");
+  if(c>0&&text.slice(0,c).trim()&&text.slice(c+1).trim()){head=parseQty(text.slice(0,c).replace(/\s+/g," ").trim());text=text.slice(c+1)}
+  const parts=split(text);
+  if(head){
+    return {parts:[head,...parts],unknown,who,title:head.title,qty:head.qty,named:true,
+      steps:parts.map(x=>({id:sid(),title:x.title,qty:x.qty,done:false}))};
+  }
+  const last=parts[parts.length-1]||{title:"",qty:null};
+  return {parts,unknown,who,title:last.title,qty:last.qty,named:false,
+    steps:parts.length>1?parts.map(x=>({id:sid(),title:x.title,qty:x.qty,done:false})):[]};
+}
+function updatePreview(){
+  const el=$("#preview"),inp=$("#quickAdd");if(!el||!inp)return;
+  const p=planTask(inp.value);
+  if(!p.parts.length||(p.parts.length<2&&!p.qty&&!p.who&&!p.unknown.length&&!p.named)){el.hidden=true;return}
+  el.hidden=false;
+  el.innerHTML=`<span class="plbl">Adds 1 card${p.steps.length?` with ${p.steps.length} step${p.steps.length===1?"":"s"}`:""}</span>`
+    +`<span class="pstep"><b class="pt">${esc(p.title)}</b>${p.qty?` <b>×${p.qty}</b>`:""}${p.who?` <span class="pwho">${esc(p.who)}</span>`:""}</span>`
+    +(p.steps.length?`<span class="parr">Steps:</span>`+p.steps.map((x,i)=>`<span class="pstep">${i+1}. ${esc(x.title)}${x.qty?` <b>×${x.qty}</b>`:""}</span>`).join(""):"")
+    +(p.unknown.length?`<span class="pnew warn">${p.unknown.map(u=>"@"+esc(u)).join(" and ")} ${p.unknown.length>1?"aren't":"isn't"} in People, so ${p.who?"they'll be ignored":"the card won't be assigned"}. Add people with the People button at the top.</span>`:"");
+}
+
+/* ---------- cards ---------- */
+function movesHTML(id,ci){return `<span class="moves"><button class="edit" data-edit="${id}" aria-label="Edit task" title="Edit task">✎</button><button data-move="${id}" data-dir="-1" aria-label="Move to ${COLS[ci-1]?.name||""}" title="Move to ${COLS[ci-1]?.name||""}"${ci===0?" disabled":""}>‹</button><button data-move="${id}" data-dir="1" aria-label="Move to ${COLS[ci+1]?.name||""}" title="Move to ${COLS[ci+1]?.name||""}"${ci===2?" disabled":""}>›</button></span>`}
+const whoHTML=t=>`<span class="who${t.assignee?"":" none"}">${t.assignee?esc(t.assignee):"Unassigned"}</span>`;
+const notesHTML=t=>{const n=(t.notes||[]).filter(Boolean);return n.length?`<ul>${n.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""};
+function cardHTML(t,c,ci){
+  const steps=t.steps||[],done=steps.filter(x=>x.done).length,next=c.id==="done"?-1:steps.findIndex(x=>!x.done);
+  const prog=steps.length?`<div class="prog" title="${done} of ${steps.length} steps done"><span class="bar"><i style="width:${Math.round(done/steps.length*100)}%"></i></span><span class="pn">${done}/${steps.length}</span></div>`:"";
+  const list=steps.length?`<ol class="checklist">${steps.map((x,i)=>`<li class="chk${x.done?" ok":""}${i===next?" next":""}" data-step="${x.id}">
+      <button class="box" data-tick="${t.id}:${x.id}" aria-pressed="${!!x.done}" aria-label="${x.done?"Untick":"Tick off"} ${esc(x.title)}" title="${x.done?"Untick":"Tick off"}">${x.done?"✓":""}</button>
+      <span class="sn">${esc(x.title)}${x.qty?` <span class="dq">×${x.qty}</span>`:""}</span>${i===next?`<span class="nx">Next</span>`:""}</li>`).join("")}</ol>`:"";
+  return `<article class="card${c.id==="done"?" done":""}" data-task="${t.id}" data-key="${t.order||0}" data-open="${t.id}">
+    <div class="titleline"><button class="t" data-edit="${t.id}">${esc(t.title)}</button>${t.qty?`<span class="qty">×${t.qty}</span>`:""}</div>
+    ${prog}${list}${notesHTML(t)}
+    <div class="meta">${whoHTML(t)}${movesHTML(t.id,ci)}</div></article>`;
+}
+
+/* ---------- per-game notes ---------- */
+const N={game:null,dirty:false,timer:null};
+function fmtAgo(ts){if(!ts)return"";const m=Math.round((Date.now()-ts)/60000);
+  if(m<1)return"Saved just now";if(m<60)return`Saved ${m} min ago`;const h=Math.round(m/60);if(h<24)return`Saved ${h}h ago`;
+  return"Saved "+new Date(ts).toLocaleDateString(undefined,{day:"numeric",month:"short"})}
+function notesPreview(text){const first=(text||"").split("\n").map(s=>s.trim()).find(Boolean)||"";return first?"— "+first:""}
+function growNotes(){const ta=$("#notesText");ta.style.height="auto";ta.style.height=Math.min(Math.max(ta.scrollHeight,84),420)+"px"}
+// show the current game's notes; never overwrite what someone is in the middle of typing
+function syncNotes(g){
+  if(!g)return;
+  const ta=$("#notesText"),n=S.notes[g.id]||{};
+  if(N.game!==g.id){flushNotes();N.game=g.id;N.dirty=false;ta.value=n.text||"";
+    let open=true;try{const v=localStorage.getItem("qb.notesOpen");if(v!=null)open=v==="1"}catch(_){}
+    $("#notes").open=open}
+  else if(!N.dirty&&document.activeElement!==ta&&ta.value!==(n.text||"")) ta.value=n.text||"";
+  if(!N.dirty) $("#notesStatus").textContent=fmtAgo(n.updatedAt);
+  $("#notesPreview").textContent=notesPreview(ta.value);
+  if($("#notes").open) growNotes();
+}
+function flushNotes(){
+  if(!N.dirty||!N.game)return;clearTimeout(N.timer);
+  const gid=N.game,text=$("#notesText").value;N.dirty=false;
+  api.saveNotes(gid,text).then(()=>{if(N.game===gid&&!N.dirty)$("#notesStatus").textContent="Saved"}).catch(err=>{N.dirty=true;$("#notesStatus").textContent="Not saved yet";fail(err)});
+}
+$("#notesText").addEventListener("input",()=>{N.dirty=true;$("#notesStatus").textContent="Saving…";$("#notesPreview").textContent=notesPreview($("#notesText").value);growNotes();
+  clearTimeout(N.timer);N.timer=setTimeout(flushNotes,800)});
+$("#notesText").addEventListener("blur",flushNotes);
+$("#notes").addEventListener("toggle",()=>{try{localStorage.setItem("qb.notesOpen",$("#notes").open?"1":"0")}catch(_){}if($("#notes").open)growNotes()});
+window.addEventListener("pagehide",flushNotes);
+
+const VRISING_ID="muk7yy131bam7";
+/* ---------- render ---------- */
+function currentGame(){const a=activeGames();return a.find(g=>g.id===S.sel)||a[0]||null}
+function render(){
+  if(D.active){D.pending=true;return}
+  const games=activeGames();
+  const cur=currentGame();
+  // per-game looks
+  document.documentElement.dataset.skin=!cur?"":cur.id===VRISING_ID?"vrising":/zomboid/i.test(cur.name)?"zomboid":"";
+  const open=id=>S.tasks.filter(t=>t.gameId===id&&t.status!=="done").length;
+  let h=games.map(g=>`<button class="tab" role="tab" aria-selected="${cur&&g.id===cur.id}" data-game="${g.id}">${esc(g.name)}<span class="n" title="${open(g.id)} task${open(g.id)===1?"":"s"} not done yet">${open(g.id)}</span></button>`).join("");
+  h+=S.addingGame
+    ?`<form class="inline-form" id="gameForm"><input id="newGame" placeholder="Game name" aria-label="Game name" maxlength="60" autocomplete="off"><button class="btn primary">Add</button><button type="button" class="btn ghost" id="cancelGame">Cancel</button></form>`
+    :`<button class="tab add" id="addGame">+ Add game</button>`;
+  $("#tabs").innerHTML=h;
+  if(S.addingGame) setTimeout(()=>$("#newGame")?.focus());
+
+  $("#notes").hidden=!(S.loaded&&cur);$("#adder").hidden=!(S.loaded&&cur)||S.view==="recipes";$("#gamebar").innerHTML="";
+  if(!S.loaded){$("#main").innerHTML=`<p class="empty">Loading your boards…</p>`;return}
+  syncNotes(cur);
+  if(!cur){$("#main").innerHTML=`<div class="col" style="align-items:center;justify-content:center;padding:40px"><p class="empty">${S.games.length?"All your games are archived. Restore one from the Games button, or add a new one.":"No games yet. Add a game to start its board."}</p><button class="btn primary" id="addGame2">+ Add game</button></div>`;return}
+
+  const peopleOpts=S.people.map(p=>`<option value="${esc(p)}"${S.filter===p?" selected":""}>${esc(p)}'s tasks</option>`).join("");
+  const tasks=S.tasks.filter(t=>t.gameId===cur.id&&(!S.filter||(S.filter==="__none"?!t.assignee:t.assignee===S.filter)));
+  const nRec=S.recipes.filter(r=>r.gameId===cur.id).length;
+  $("#gamebar").innerHTML=`<div class="gamebar"><div class="gtitle"><h2>${esc(cur.name)}</h2>
+      <div class="views" role="tablist" aria-label="Show">
+        <button role="tab" data-view="board" aria-selected="${S.view==="board"}">Board</button>
+        <button role="tab" data-view="recipes" aria-selected="${S.view==="recipes"}">Recipes <span class="n">${nRec}</span></button></div></div>
+      <div class="actions">
+      ${S.view==="board"?`<select class="filter" id="filter" aria-label="Show tasks for"><option value="">Everyone's tasks</option>${peopleOpts}<option value="__none"${S.filter==="__none"?" selected":""}>Unassigned tasks</option></select>`:""}
+      <button class="btn ghost" id="gameSettings">Edit game</button></div></div>`;
+  if(S.view==="recipes"){renderRecipes(cur);return}
+  h=`<div class="board">`;
+  COLS.forEach((c,ci)=>{
+    const list=tasks.filter(t=>t.status===c.id).sort((a,b)=>(a.order||0)-(b.order||0));
+    h+=`<section class="col" data-col="${c.id}" style="--c:${c.c}"><div class="col-head"><h3>${c.name}</h3><span class="count">${list.length}</span></div>`;
+    if(!list.length) h+=`<p class="empty">${c.id==="done"?"Nothing finished yet":c.id==="doing"?"Nothing in progress":"Nothing to do"}</p>`;
+    list.forEach(t=>{h+=cardHTML(t,c,ci)});
+    h+=`</section>`;
+  });
+  $("#main").innerHTML=h+`</div>`;
+  updatePreview();
+}
+
+/* ---------- recipes ---------- */
+const RS={q:"",cat:""};
+const PIN_SVG=`<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M10.2 1.6 14.4 5.8 12.9 6.3 10.6 8.6 10.9 11.4 9.8 12.5 7.1 9.8 3.2 13.7 2.3 12.8 6.2 8.9 3.5 6.2 4.6 5.1 7.4 5.4 9.7 3.1Z" fill="currentColor"/></svg>`;
+function recipeCard(r,names){
+  const ings=(r.ingredients||[]).map(i=>`<li><span class="iq">${i.qty||1}</span>${names.has((i.name||"").toLowerCase())&&(i.name||"").toLowerCase()!==(r.name||"").toLowerCase()
+      ?`<button class="ilink" data-rfind="${esc(i.name)}" title="Find ${esc(i.name)}: its recipe and what uses it">${esc(i.name)}</button>`:`<span>${esc(i.name)}</span>`}</li>`).join("");
+  const notes=(r.notes||"").split("\n").filter(Boolean);
+  const src=notes.filter(n=>/^Source:/i.test(n)),body=notes.filter(n=>!/^Source:/i.test(n));
+  return `<article class="rcard${r.pinned?" pinned":""}" data-recipe="${r.id}">
+    <div class="rhead"><button class="rname" data-redit="${r.id}">${esc(r.name)}</button>${r.makes>1?`<span class="qty" title="Makes ${r.makes}">×${r.makes}</span>`:""}
+      <button class="pin" data-pin="${r.id}" aria-pressed="${!!r.pinned}" aria-label="${r.pinned?"Unpin":"Pin to top"}: ${esc(r.name)}" title="${r.pinned?"Unpin":"Pin to top"}">${PIN_SVG}</button></div>
+    ${r.station?`<span class="rstation">${esc(r.station)}</span>`:""}
+    ${ings?`<ul class="ings">${ings}</ul>`:""}
+    ${body.length?`<p class="rnotes">${body.map(esc).join("<br>")}</p>`:""}
+    ${src.length?`<p class="rsrc">${src.map(esc).join("<br>")}</p>`:""}
+  </article>`;
+}
+function renderRecipes(g){
+  if(!$("#recipesView")||$("#recipesView").dataset.rgame!==g.id){
+    $("#main").innerHTML=`<section class="recipes" id="recipesView" data-rgame="${g.id}">
+      <div class="rtools"><input id="rSearch" type="search" placeholder="Search recipes, ingredients or stations" autocomplete="off" aria-label="Search recipes">
+        <button class="btn primary" id="addRecipe">+ Add recipe</button></div>
+      <div class="rcats" id="rCats"></div><div id="rList"></div></section>`;
+    $("#rSearch").value=RS.q;
+  }
+  const all=S.recipes.filter(r=>r.gameId===g.id);
+  const catOf=r=>r.category||"Other";
+  const cats=[...new Set(all.map(catOf))].sort((a,b)=>a.localeCompare(b));
+  if(RS.cat&&!cats.includes(RS.cat))RS.cat="";
+  $("#rCats").innerHTML=cats.length>1?[["","All",all.length],...cats.map(c=>[c,c,all.filter(r=>catOf(r)===c).length])]
+    .map(([v,l,n])=>`<button class="chip" data-rcat="${esc(v)}" aria-pressed="${RS.cat===v}">${esc(l)} <span class="n">${n}</span></button>`).join(""):"";
+  const q=RS.q.trim().toLowerCase();
+  const shown=all.filter(r=>(!RS.cat||catOf(r)===RS.cat)&&(!q||[r.name,r.station,r.category,...(r.ingredients||[]).map(i=>i.name)].some(x=>(x||"").toLowerCase().includes(q))));
+  const names=new Set(all.map(r=>(r.name||"").toLowerCase()));
+  const byName=(a,b)=>(a.name||"").localeCompare(b.name||"",undefined,{numeric:true});
+  const pinned=shown.filter(r=>r.pinned).sort((a,b)=>(a.pinnedAt||0)-(b.pinnedAt||0));
+  const rest=shown.filter(r=>!r.pinned);
+  let h="";
+  if(!all.length) h=`<p class="empty">No recipes for ${esc(g.name)} yet. Add one with “+ Add recipe”.</p>`;
+  else if(!shown.length) h=`<p class="empty">No recipes match “${esc(RS.q.trim())}”.</p>`;
+  else{
+    if(pinned.length) h+=`<h3 class="rgroup pinned-h">Pinned</h3><div class="rgrid">${pinned.map(r=>recipeCard(r,names)).join("")}</div>`;
+    [...new Set(rest.map(catOf))].sort((a,b)=>a.localeCompare(b)).forEach(c=>{
+      const list=rest.filter(r=>catOf(r)===c).sort(byName);
+      h+=`<h3 class="rgroup">${esc(c)} <span class="count">${list.length}</span></h3><div class="rgrid">${list.map(r=>recipeCard(r,names)).join("")}</div>`;
+    });
+  }
+  $("#rList").innerHTML=h;
+}
+function openRecipe(id){
+  const g=currentGame();if(!g)return;
+  const r=id?S.recipes.find(x=>x.id===id):null;if(id&&!r)return;
+  const cats=[...new Set(S.recipes.filter(x=>x.gameId===g.id).map(x=>x.category).filter(Boolean))].sort();
+  const stations=[...new Set(S.recipes.filter(x=>x.gameId===g.id).map(x=>x.station).filter(Boolean))].sort();
+  $("#modal").innerHTML=`<div class="scrim" data-close><form class="sheet" id="recipeForm">
+    <h4>${r?"Edit recipe":"Add recipe"}</h4>
+    <div class="newdep" style="grid-template-columns:1fr 90px">
+      <div class="field"><label for="rName">Name</label><input id="rName" value="${esc(r?.name||"")}" maxlength="120" required></div>
+      <div class="field"><label for="rMakes">Makes</label><input id="rMakes" type="number" min="1" value="${r?.makes||1}"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="rStation">Made at</label><input id="rStation" list="rStations" value="${esc(r?.station||"")}" placeholder="e.g. Furnace" maxlength="80"><datalist id="rStations">${stations.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+      <div class="field"><label for="rCat">Category</label><input id="rCat" list="rCatList" value="${esc(r?.category||"")}" placeholder="e.g. Materials" maxlength="80"><datalist id="rCatList">${cats.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+    </div>
+    <div class="field"><label for="rIngs">Ingredients</label><textarea id="rIngs" placeholder="One per line, e.g.&#10;12 Gold Ingot&#10;1 Flawless Ruby">${esc((r?.ingredients||[]).map(i=>`${i.qty||1} ${i.name}`).join("\n"))}</textarea><span class="hint">One per line, number first: “12 Gold Ingot”.</span></div>
+    <div class="field"><label for="rNotes">Notes (optional)</label><textarea id="rNotes" placeholder="e.g. Craft time, where to find the ingredients">${esc(r?.notes||"")}</textarea></div>
+    <label class="check"><input type="checkbox" id="rPin"${r?.pinned?" checked":""}> Pin to top</label>
+    <div class="sheet-foot"><span id="rDelWrap">${r?`<button type="button" class="btn danger" id="rDel">Delete</button>`:""}</span>
+      <span class="r"><button type="button" class="btn" data-cancel>Cancel</button><button class="btn primary" title="Ctrl+Enter">Save</button></span></div>
+  </form></div>`;
+  $("#rName").focus();
+  $("#recipeForm").onsubmit=e=>{e.preventDefault();
+    const name=$("#rName").value.trim();if(!name)return;
+    const m=parseInt($("#rMakes").value,10),pin=$("#rPin").checked;
+    const ingredients=$("#rIngs").value.split("\n").map(x=>x.replace(/^\s*[-*•]\s*/,"").trim()).filter(Boolean).map(x=>{const p=parseQty(x);return{name:p.title,qty:p.qty||1}});
+    const data={gameId:g.id,name,makes:m>0?m:1,station:$("#rStation").value.trim(),category:$("#rCat").value.trim(),ingredients,notes:$("#rNotes").value.trim(),
+      pinned:pin,pinnedAt:pin?(r?.pinned?r.pinnedAt||Date.now():Date.now()):null,createdAt:r?.createdAt||Date.now()};
+    closeModal();
+    if(r){Object.assign(r,data);render();api.patchRecipe(r.id,data).catch(fail)}
+    else api.saveRecipe(uid(),data).catch(fail);
+  };
+  if(r)$("#rDel").onclick=()=>{$("#rDelWrap").innerHTML=`<span class="hint">Delete this recipe?</span> <button type="button" class="btn danger solid" id="rDelYes">Yes, delete</button>`;
+    $("#rDelYes").onclick=()=>{closeModal();api.deleteRecipe(r.id).catch(fail)}};
+}
+
+/* ---------- modals ---------- */
+function closeModal(){$("#modal").innerHTML=""}
+function openTask(id){
+  const t=byId(id);if(!t)return;
+  let steps=(t.steps||[]).map(x=>({...x}));
+  const opts=`<option value="">Unassigned</option>`+S.people.map(p=>`<option${p===t.assignee?" selected":""}>${esc(p)}</option>`).join("")+(t.assignee&&!S.people.includes(t.assignee)?`<option selected>${esc(t.assignee)}</option>`:"");
+  $("#modal").innerHTML=`<div class="scrim" data-close><form class="sheet" id="taskForm">
+    <h4>Edit task</h4>
+    <div class="newdep" style="grid-template-columns:1fr 90px">
+      <div class="field"><label for="fTitle">Name</label><input id="fTitle" value="${esc(t.title)}" maxlength="140" required></div>
+      <div class="field"><label for="fQty">Quantity</label><input id="fQty" type="number" min="1" step="1" inputmode="numeric" value="${t.qty||""}" placeholder="None"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="fWho">Assigned to</label><select id="fWho">${opts}</select></div>
+      <div class="field"><label for="fStatus">Column</label><select id="fStatus">${COLS.map(c=>`<option value="${c.id}"${c.id===t.status?" selected":""}>${c.name}</option>`).join("")}</select></div>
+    </div>
+    <div class="field"><label for="stAdd">Steps (optional)</label>
+      <div class="steplist" id="stList"></div>
+      <input id="stAdd" placeholder="Add a step, e.g. 6 wood, then press Enter" maxlength="140" autocomplete="off">
+      <span class="hint">Tick steps off on the card as you go. Drag them on the card to reorder.</span></div>
+    <div class="field"><label for="fNotes">Notes (optional)</label><textarea id="fNotes" placeholder="e.g. Save before the boss">${esc((t.notes||[]).join("\n"))}</textarea><span class="hint">Each line shows as a bullet point on the card.</span></div>
+    <div class="sheet-foot"><span id="delWrap"><button type="button" class="btn danger" id="delTask">Delete</button></span>
+      <span class="r"><button type="button" class="btn" data-cancel>Cancel</button><button class="btn primary" title="Ctrl+Enter">Save</button></span></div>
+  </form></div>`;
+  // copy what's typed in the step rows back into the list before redrawing or saving
+  const readRows=()=>{document.querySelectorAll("#stList .srow").forEach((r,i)=>{const x=steps[i];if(!x)return;
+    x.title=r.querySelector(".st-t").value.trim();const q=parseInt(r.querySelector(".st-q").value,10);x.qty=q>0?q:null;x.done=r.querySelector(".st-d").checked})};
+  const draw=()=>{
+    $("#stList").innerHTML=steps.length?steps.map((x,i)=>`<div class="srow">
+        <input type="checkbox" class="st-d"${x.done?" checked":""} aria-label="Step ${i+1} done" title="Done">
+        <input class="st-t" value="${esc(x.title)}" aria-label="Step ${i+1}" maxlength="140">
+        <input class="st-q" type="number" min="1" value="${x.qty||""}" placeholder="Qty" aria-label="Step ${i+1} quantity">
+        <button type="button" class="ib" data-up="${i}"${i===0?" disabled":""} aria-label="Move step up" title="Move up">↑</button>
+        <button type="button" class="ib" data-down="${i}"${i===steps.length-1?" disabled":""} aria-label="Move step down" title="Move down">↓</button>
+        <button type="button" class="ib rm" data-del="${i}" aria-label="Remove step" title="Remove step">×</button></div>`).join("")
+      :`<p class="hint none">No steps. Add some if this takes a few things to get done.</p>`;
+    $("#stList").querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{readRows();const i=+b.dataset.up;[steps[i-1],steps[i]]=[steps[i],steps[i-1]];draw()});
+    $("#stList").querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>{readRows();const i=+b.dataset.down;[steps[i+1],steps[i]]=[steps[i],steps[i+1]];draw()});
+    $("#stList").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{readRows();steps.splice(+b.dataset.del,1);draw()});
+  };
+  const addTyped=()=>{const v=$("#stAdd").value.trim();if(!v)return false;readRows();const p=parseQty(v);steps.push({id:sid(),title:p.title,qty:p.qty,done:false});$("#stAdd").value="";return true};
+  draw();
+  $("#fTitle").focus();
+  $("#stAdd").onkeydown=e=>{if(e.key==="Enter"&&!e.ctrlKey&&!e.metaKey){e.preventDefault();if(addTyped()){draw();$("#stAdd").focus()}}};
+  $("#taskForm").onsubmit=e=>{e.preventDefault();
+    const title=$("#fTitle").value.trim();if(!title)return;
+    readRows();addTyped(); // a step still in the box counts too
+    const status=$("#fStatus").value,q=parseInt($("#fQty").value,10);
+    const data={title,qty:q>0?q:null,assignee:$("#fWho").value,status,steps:cleanSteps(steps),
+      notes:$("#fNotes").value.split("\n").map(x=>x.replace(/^\s*[-*•]\s*/,"").trim()).filter(Boolean)};
+    if(status!==t.status) data.order=Date.now();
+    closeModal();Object.assign(t,data);render();
+    api.patchTask(id,data).catch(fail)};
+  $("#delTask").onclick=()=>{$("#delWrap").innerHTML=`<span class="hint">Delete this task?</span> <button type="button" class="btn danger solid" id="delYes">Yes, delete</button>`;
+    $("#delYes").onclick=()=>{closeModal();api.deleteTask(id).catch(fail)}};
+}
+function openGame(){
+  const g=currentGame();if(!g)return;
+  const n=S.tasks.filter(t=>t.gameId===g.id).length;
+  $("#modal").innerHTML=`<div class="scrim" data-close><form class="sheet" id="gForm">
+    <h4>Edit game</h4>
+    <div class="field"><label for="gName">Name</label><input id="gName" value="${esc(g.name)}" maxlength="60" required></div>
+    <div class="sheet-foot"><span id="gDelWrap"><button type="button" class="btn" id="gArch" title="Hide from the tabs; restore any time from Games">Archive</button> <button type="button" class="btn danger" id="gDel">Delete game</button></span>
+      <span class="r"><button type="button" class="btn" data-cancel>Cancel</button><button class="btn primary" title="Ctrl+Enter">Save</button></span></div>
+  </form></div>`;
+  $("#gForm").onsubmit=e=>{e.preventDefault();const name=$("#gName").value.trim();if(!name)return;closeModal();api.renameGame(g.id,name).catch(fail)};
+  $("#gArch").onclick=()=>{closeModal();archiveGame(g.id,true)};
+  $("#gDel").onclick=()=>{$("#gDelWrap").innerHTML=`<span class="hint">This also deletes its ${n} task${n===1?"":"s"} and notes.</span> <button type="button" class="btn danger solid" id="gYes">Yes, delete</button>`;
+    $("#gYes").onclick=()=>{closeModal();S.sel=null;api.deleteGame(g.id).catch(fail)}};
+}
+function archiveGame(id,on){
+  const g=S.games.find(x=>x.id===id);if(!g)return;
+  const d=on?{archived:true}:{archived:false,order:Date.now()};
+  Object.assign(g,d);if(on&&S.sel===id)S.sel=null;render();
+  api.patchGame(id,d).catch(fail);
+  if(on)toast(`${g.name} archived. Restore it from the Games button.`);
+}
+function moveGame(id,dir){
+  const act=activeGames(),i=act.findIndex(g=>g.id===id),j=i+dir;if(i<0||j<0||j>=act.length)return;
+  const [m]=act.splice(i,1);act.splice(j,0,m);
+  act.forEach((g,k)=>{const o=(k+1)*1000;if(g.order!==o){g.order=o;api.patchGame(g.id,{order:o}).catch(fail)}});
+  render();
+}
+function openGames(){
+  const draw=()=>{
+    const all=sortedGames(),act=all.filter(g=>!g.archived),arc=all.filter(g=>g.archived);
+    const open=id=>S.tasks.filter(t=>t.gameId===id&&t.status!=="done").length;
+    $("#modal").innerHTML=`<div class="scrim" data-close><div class="sheet">
+      <h4>Games</h4>
+      <p class="hint" style="margin:0">The order here is the order of the tabs. Archived games are hidden from the tabs but keep their tasks, recipes and notes.</p>
+      <div class="glist">${act.length?act.map((g,i)=>`<div class="grow"><span class="gn">${esc(g.name)}</span><span class="dq">${open(g.id)} open</span>
+        <button class="ib" data-gup="${g.id}"${i===0?" disabled":""} aria-label="Move ${esc(g.name)} earlier" title="Move earlier">↑</button>
+        <button class="ib" data-gdown="${g.id}"${i===act.length-1?" disabled":""} aria-label="Move ${esc(g.name)} later" title="Move later">↓</button>
+        <button class="btn" data-garch="${g.id}">Archive</button></div>`).join(""):`<p class="hint none" style="padding:10px 12px;margin:0">No active games.</p>`}</div>
+      ${arc.length?`<h5 class="ghead">Archived (${arc.length})</h5><div class="glist">${arc.map(g=>`<div class="grow arch"><span class="gn">${esc(g.name)}</span><span class="dq">${open(g.id)} open</span><button class="btn" data-grestore="${g.id}">Restore</button></div>`).join("")}</div>`:""}
+      <div class="sheet-foot"><span class="r"><button class="btn" data-cancel>Done</button></span></div>
+    </div></div>`;
+    const wire=(attr,fn)=>document.querySelectorAll(`[${attr}]`).forEach(b=>b.onclick=()=>{fn(b.getAttribute(attr));draw()});
+    wire("data-gup",id=>moveGame(id,-1));wire("data-gdown",id=>moveGame(id,1));
+    wire("data-garch",id=>archiveGame(id,true));wire("data-grestore",id=>archiveGame(id,false));
+  };
+  draw();
+}
+function openPeople(){
+  let editing=null,err="";
+  const draw=()=>{
+    const chip=(p,i)=>editing===i
+      ?`<form class="person editing" id="renForm"><input id="renName" value="${esc(p)}" maxlength="40" autocomplete="off" aria-label="New name for ${esc(p)}"><button class="btn primary">Save</button><button type="button" class="btn ghost" id="renCancel">Cancel</button></form>`
+      :`<span class="person"><button class="pn" data-ren="${i}" title="Rename ${esc(p)}">${esc(p)} <span class="pen">✎</span></button><button data-rm="${i}" aria-label="Remove ${esc(p)}">×</button></span>`;
+    $("#modal").innerHTML=`<div class="scrim" data-close><div class="sheet">
+      <h4>People</h4>
+      <p class="hint" style="margin:0">Tasks can be assigned to anyone listed here. Click a name to rename it, and their tasks update to match. Removing someone leaves their name on tasks already assigned to them. (Who can sign in is set in the sheet's Users tab.)</p>
+      <div class="people-list">${S.people.length?S.people.map(chip).join(""):`<span class="hint">No one added yet.</span>`}</div>
+      ${err?`<p class="hint" style="margin:0;color:var(--danger)">${esc(err)}</p>`:""}
+      <form class="quick" id="pForm"><input id="pName" placeholder="New person's name" maxlength="40" autocomplete="off" aria-label="New person's name"><button class="btn primary">Add</button></form>
+      <div class="sheet-foot"><span class="r"><button class="btn" data-cancel>Done</button></span></div>
+    </div></div>`;
+    if(editing!=null){const r=$("#renName");r.focus();r.select();
+      $("#renCancel").onclick=()=>{editing=null;err="";draw()};
+      $("#renForm").onsubmit=async e=>{e.preventDefault();const old=S.people[editing],v=$("#renName").value.trim();
+        if(!v||v===old){editing=null;err="";draw();return}
+        if(S.people.includes(v)){err=`${v} is already in People.`;draw();return}
+        const names=S.people.map(p=>p===old?v:p);S.people=names;if(S.filter===old)S.filter=v;editing=null;err="";draw();
+        try{await api.setPeople(names);for(const t of S.tasks.filter(t=>t.assignee===old)) await api.patchTask(t.id,{assignee:v})}catch(x){fail(x)}}}
+    else $("#pName").focus();
+    document.querySelectorAll("[data-ren]").forEach(b=>b.onclick=()=>{editing=+b.dataset.ren;err="";draw()});
+    $("#pForm").onsubmit=e=>{e.preventDefault();const v=$("#pName").value.trim();if(!v||S.people.includes(v))return;
+      const names=[...S.people,v];S.people=names;draw();api.setPeople(names).catch(fail)};
+    document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{const names=S.people.filter((_,i)=>i!=b.dataset.rm);S.people=names;draw();api.setPeople(names).catch(fail)});
+  };
+  draw();
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+  const el=e.target;
+  const tab=el.closest("[data-game]");if(tab){flushNotes();S.sel=tab.dataset.game;S.filter="";try{localStorage.setItem("qb.sel",S.sel)}catch(_){}render();return}
+  if(el.closest("#addGame")||el.closest("#addGame2")){S.addingGame=true;render();return}
+  if(el.closest("#cancelGame")){S.addingGame=false;render();return}
+  if(el.closest("#peopleBtn")){openPeople();return}
+  if(el.closest("#gamesBtn")){openGames();return}
+  if(el.closest("#gameSettings")){openGame();return}
+  const vw=el.closest("[data-view]");if(vw){S.view=vw.dataset.view;try{localStorage.setItem("qb.view",S.view)}catch(_){}render();return}
+  const pn=el.closest("[data-pin]");if(pn){const r=S.recipes.find(x=>x.id===pn.dataset.pin);if(!r)return;
+    const d={pinned:!r.pinned,pinnedAt:!r.pinned?Date.now():null};Object.assign(r,d);render();api.patchRecipe(r.id,d).catch(fail);return}
+  const rc=el.closest("[data-rcat]");if(rc){RS.cat=rc.dataset.rcat;render();return}
+  const rf=el.closest("[data-rfind]");if(rf){RS.q=rf.dataset.rfind;RS.cat="";const i=$("#rSearch");if(i)i.value=RS.q;render();scrollTo({top:$("#recipesView")?.offsetTop-10||0,behavior:"smooth"});return}
+  if(el.closest("#addRecipe")){openRecipe(null);return}
+  const re=el.closest("[data-redit]");if(re){openRecipe(re.dataset.redit);return}
+  const rcard=el.closest("[data-recipe]");if(rcard&&!el.closest("button,a,input")){openRecipe(rcard.dataset.recipe);return}
+  const tk=el.closest("[data-tick]");if(tk){const [tid,xid]=tk.dataset.tick.split(":");const t=byId(tid);if(!t)return;
+    t.steps=(t.steps||[]).map(x=>x.id===xid?{...x,done:!x.done}:x);render();api.patchTask(tid,{steps:cleanSteps(t.steps)}).catch(fail);return}
+  const ed=el.closest("[data-edit]");if(ed){openTask(ed.dataset.edit);return}
+  const mv=el.closest("[data-move]");if(mv){const t=S.tasks.find(x=>x.id===mv.dataset.move);const i=COLS.findIndex(c=>c.id===t.status)+Number(mv.dataset.dir);
+    if(COLS[i]){t.status=COLS[i].id;render();api.patchTask(t.id,{status:COLS[i].id,order:Date.now()}).catch(fail)}return}
+  // the background only closes a box when the click both starts and ends on it
+  if((el.matches("[data-close]")&&downOn===el)||el.closest("[data-cancel]")){closeModal();return}
+  // clicking anywhere on a card that isn't a button opens the editor
+  const op=el.closest("[data-open]");if(op&&!el.closest("button,a,input,select,textarea")){openTask(op.dataset.open)}
+});
+let downOn=null;
+document.addEventListener("pointerdown",e=>{downOn=e.target},true);
+document.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){const f=document.querySelector("#modal form.sheet");if(f){e.preventDefault();f.requestSubmit();return}}
+  if(e.key==="Escape"){if($("#modal").innerHTML)closeModal();else if(S.addingGame){S.addingGame=false;render()}}});
+document.addEventListener("input",e=>{if(e.target.id==="quickAdd")updatePreview();if(e.target.id==="rSearch"){RS.q=e.target.value;render()}});
+document.addEventListener("change",e=>{if(e.target.id==="filter"){S.filter=e.target.value;render()}});
+document.addEventListener("submit",async e=>{
+  if(e.target.id==="gameForm"){e.preventDefault();const v=$("#newGame").value.trim();if(!v)return;S.addingGame=false;
+    try{const id=await api.addGame(v);S.sel=id;try{localStorage.setItem("qb.sel",id)}catch(_){}render()}catch(err){fail(err)}}
+  if(e.target.id==="quickForm"){e.preventDefault();const g=currentGame();const p=planTask($("#quickAdd").value);if(!g||!p.parts.length)return;
+    const assignee=p.who||(S.filter&&S.filter!=="__none"?S.filter:"");const now=Date.now();
+    $("#quickAdd").value="";$("#preview").hidden=true;
+    try{await api.saveTask(uid(),{gameId:g.id,title:p.title,qty:p.qty,notes:[],steps:cleanSteps(p.steps),assignee,status:"todo",order:now,createdAt:now})}catch(err){fail(err)}
+    setTimeout(()=>$("#quickAdd")?.focus())}
+});
+/* ---------- drag and drop (mouse and touch) ----------
+   Drag a card to another column, or above/below other cards.
+   Drag a step inside its card to change the order of the steps.
+   On touch screens, press and hold for a moment first, so normal scrolling still works. */
+const D={active:false,pending:false,kind:null,el:null,srcCard:null,ghost:null,line:null,start:null,timer:null,off:null,col:null,idx:0,y:0,x:0,justDropped:false,pid:null};
+function dragReset(){clearTimeout(D.timer);D.timer=null;D.start=null;D.pid=null}
+document.addEventListener("pointerdown",e=>{
+  if(e.button!==0)return;
+  if(e.target.closest(".moves button,.box,a,input,select,textarea"))return;
+  const card=e.target.closest(".card");if(!card||card.closest(".ghost"))return;
+  const step=e.target.closest(".chk");
+  D.start={x:e.clientX,y:e.clientY,card,step,touch:e.pointerType!=="mouse"};D.pid=e.pointerId;
+  if(D.start.touch) D.timer=setTimeout(()=>{if(D.start)beginDrag(D.start.x,D.start.y)},320);
+});
+document.addEventListener("pointermove",e=>{
+  if(!D.start||e.pointerId!==D.pid)return;
+  D.x=e.clientX;D.y=e.clientY;
+  if(!D.active){
+    const moved=Math.hypot(e.clientX-D.start.x,e.clientY-D.start.y);
+    if(D.start.touch){if(moved>10)dragReset();return} // finger moved before the hold: it's a scroll
+    if(moved>6)beginDrag(e.clientX,e.clientY);else return;
+  }
+  moveDrag(e.clientX,e.clientY);
+});
+document.addEventListener("touchmove",e=>{if(D.active)e.preventDefault()},{passive:false});
+document.addEventListener("pointerup",e=>{if(e.pointerId!==D.pid)return;if(D.active)endDrag(true);else dragReset()});
+document.addEventListener("pointercancel",e=>{if(e.pointerId!==D.pid)return;if(D.active)endDrag(false);else dragReset()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&D.active)endDrag(false)});
+// a drop shouldn't also count as a click that opens the editor
+document.addEventListener("click",e=>{if(D.justDropped){e.stopPropagation();e.preventDefault();D.justDropped=false}},true);
+
+function beginDrag(x,y){
+  const {card,step}=D.start;
+  D.kind=step?"step":"card";D.el=step||card;D.srcCard=card;
+  const r=D.el.getBoundingClientRect();
+  D.active=true;D.off={x:x-r.left,y:y-r.top};
+  let g;
+  if(step){g=document.createElement("div");g.className="card ghost step-ghost";g.appendChild(step.querySelector(".sn").cloneNode(true))}
+  else{g=card.cloneNode(true);g.classList.add("ghost");g.removeAttribute("data-open")}
+  g.style.setProperty("--c",getComputedStyle(card).getPropertyValue("--c"));
+  g.style.width=r.width+"px";
+  document.body.appendChild(g);D.ghost=g;
+  D.el.classList.add("placeholder");
+  D.line=document.createElement("div");D.line.className="dropline";
+  if(step){D.line.classList.add("in-list");card.classList.add("reordering")}
+  document.body.classList.add("is-dragging");
+  try{navigator.vibrate?.(15)}catch(_){}
+  moveDrag(x,y);autoScroll();
+}
+function inside(el,x,y){const r=el.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom}
+function moveDrag(x,y){
+  D.x=x;D.y=y;
+  D.ghost.style.transform=`translate(${x-D.off.x}px,${y-D.off.y}px) rotate(1.5deg)`;
+  if(D.kind==="step"){ // steps only move within their own card
+    const list=D.srcCard.querySelector(".checklist");
+    const items=[...list.querySelectorAll(".chk")].filter(li=>li!==D.el);
+    let idx=items.findIndex(li=>{const r=li.getBoundingClientRect();return y<r.top+r.height/2});
+    if(idx<0)idx=items.length;
+    D.idx=idx;
+    if(items[idx])list.insertBefore(D.line,items[idx]);else list.appendChild(D.line);
+    return;
+  }
+  const cols=[...document.querySelectorAll(".col")];
+  let col=cols.find(c=>inside(c,x,y));
+  if(!col)col=cols.reduce((best,c)=>{const r=c.getBoundingClientRect();const dx=Math.max(r.left-x,0,x-r.right),dy=Math.max(r.top-y,0,y-r.bottom),d=dx*dx+dy*dy;return !best||d<best.d?{c,d}:best},null)?.c;
+  if(!col)return;
+  cols.forEach(c=>c.classList.toggle("over",c===col));
+  const cards=[...col.querySelectorAll(".card")].filter(c=>c!==D.el);
+  let idx=cards.findIndex(c=>{const r=c.getBoundingClientRect();return y<r.top+r.height/2});
+  if(idx<0)idx=cards.length;
+  D.col=col;D.idx=idx;
+  if(cards[idx])col.insertBefore(D.line,cards[idx]);else col.appendChild(D.line);
+}
+function autoScroll(){
+  if(!D.active)return;
+  const edge=70,h=innerHeight;let dy=0;
+  if(D.y<edge)dy=-Math.ceil((edge-D.y)/5);else if(D.y>h-edge)dy=Math.ceil((D.y-(h-edge))/5);
+  if(dy){scrollBy(0,dy);moveDrag(D.x,D.y)}
+  requestAnimationFrame(autoScroll);
+}
+function endDrag(commit){
+  const snap={kind:D.kind,el:D.el,srcCard:D.srcCard,col:D.col,idx:D.idx};
+  D.ghost?.remove();D.line?.remove();
+  document.querySelectorAll(".col.over,.card.reordering").forEach(c=>c.classList.remove("over","reordering"));
+  snap.el?.classList.remove("placeholder");document.body.classList.remove("is-dragging");
+  D.active=false;D.justDropped=true;setTimeout(()=>{D.justDropped=false},0);
+  dragReset();
+  let change=null;
+  if(commit&&snap.el) change=snap.kind==="step"?dropStep(snap):dropCard(snap);
+  if(change){const [t,d]=change;Object.assign(t,d);render();api.patchTask(t.id,d).catch(fail)}
+  if(D.pending||!change){D.pending=false;render()}
+}
+function dropStep(snap){
+  const t=byId(snap.srcCard.dataset.task);if(!t)return null;
+  const steps=[...(t.steps||[])],from=steps.findIndex(x=>x.id===snap.el.dataset.step);if(from<0)return null;
+  const [m]=steps.splice(from,1);steps.splice(snap.idx,0,m);
+  if(steps.every((x,i)=>x===t.steps[i]))return null;
+  return [t,{steps:cleanSteps(steps)}];
+}
+function dropCard(snap){
+  if(!snap.col)return null;
+  const t=byId(snap.srcCard.dataset.task);if(!t)return null;
+  const to=snap.col.dataset.col;
+  const cards=[...snap.col.querySelectorAll(".card")].filter(c=>c!==snap.srcCard);
+  const prev=cards[snap.idx-1],next=cards[snap.idx];
+  const pk=prev?+prev.dataset.key:null,nk=next?+next.dataset.key:null;
+  const key=pk!=null&&nk!=null?(pk+nk)/2:pk!=null?pk+1000:nk!=null?nk-1000:Date.now();
+  if(to===t.status&&key===(t.order||0))return null;
+  return [t,to===t.status?{order:key}:{status:to,order:key}];
+}
+
+/* ---------- moving boards over from claude.ai ---------- */
+async function offerImport(){
+  if(!db||!db.isEmpty())return;
+  let seed;try{const r=await fetch("seed.json",{cache:"no-store"});if(!r.ok)return;seed=await r.json()}catch(e){return}
+  const docs=(seed&&seed.docs)||[];if(!docs.length)return;
+  const n=c=>docs.filter(d=>d.c===c).length;
+  $("#importText").textContent=`Found your boards from claude.ai: ${n("games")} games, ${n("tasks")} tasks and ${n("recipes")} recipes. Copy them into the sheet?`;
+  $("#importBar").hidden=false;
+  $("#importNo").onclick=()=>{$("#importBar").hidden=true};
+  $("#importBtn").onclick=async()=>{const b=$("#importBtn");b.disabled=true;b.textContent="Importing…";
+    try{await db.importDocs(docs);$("#importBar").hidden=true;toast("Boards imported.")}
+    catch(e){b.disabled=false;b.textContent="Import them";toast("Import didn't work: "+e.message,8000)}};
+}
+
+/* ---------- boot ---------- */
+render();
+(async()=>{
+  db=await startBackend(offerImport);
+  if(!db){sync();$("#notice").hidden=false;return}
+  let got={g:false,t:false};
+  const ready=()=>{if(got.g&&got.t){S.loaded=true;render()}};
+  db.collection("games").onSnapshot(s=>{S.games=s.docs.map(d=>({id:d.id,...d.data()}));got.g=true;ready()});
+  db.collection("tasks").onSnapshot(s=>{S.tasks=s.docs.map(d=>({id:d.id,...d.data()}));got.t=true;ready()});
+  db.collection("gamenotes").onSnapshot(s=>{S.notes={};s.docs.forEach(d=>S.notes[d.id]=d.data());if(S.loaded)syncNotes(currentGame())});
+  db.collection("recipes").onSnapshot(s=>{S.recipes=s.docs.map(d=>({id:d.id,...d.data()}));if(S.loaded)render()});
+  db.doc("meta/people").onSnapshot(s=>{S.people=s.exists?[...(s.data().names||[])]:[];if(S.loaded)render()});
+})();
+</script>
+</body>
+</html>
